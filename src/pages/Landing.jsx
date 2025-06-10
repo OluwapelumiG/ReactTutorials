@@ -1,6 +1,11 @@
 import Navbar from '../components/Navbar'
+import { useSelector, useDispatch } from 'react-redux'
+import { incremented, decremented, doubled, half } from '../store/counter'
 
 const Landing = () => {
+    const counter = useSelector((state) => state.counter.value)
+    const dispatch = useDispatch()
+
     return (
         <div>
             <Navbar />
@@ -14,9 +19,14 @@ const Landing = () => {
                         </button>
                     </div>
                 </div>
+                <button className='bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors' onClick={() => dispatch(incremented())}>Increase</button>
+                <button className='bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors' onClick={() => dispatch(decremented())}>Decrease</button>
+                <button className='bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors' onClick={() => dispatch(doubled())}>Double</button>
+                <button className='bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors' onClick={() => dispatch(half())}>Half</button>
+                <p>Counter: {counter}</p>
             </div>
         </div>
     )
 }
 
-export default Landing 
+export default Landing
