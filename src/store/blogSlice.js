@@ -10,7 +10,7 @@ export const blogSlice = createSlice({
     name: 'blog',
     initialState,
     reducers: {
-        addPost: (state, action) => {
+        createPost: (state, action) => {
             state.posts.push(action.payload)
         },
         updatePost: (state, action) => {
@@ -18,19 +18,10 @@ export const blogSlice = createSlice({
             if (index !== -1) {
                 state.posts[index] = action.payload
             }
-        },
-        deletePost: (state, action) => {
-            state.posts = state.posts.filter(post => post.id !== action.payload)
-        },
-        setLoading: (state, action) => {
-            state.loading = action.payload
-        },
-        setError: (state, action) => {
-            state.error = action.payload
         }
     }
 })
 
-export const { addPost, updatePost, deletePost, setLoading, setError } = blogSlice.actions
+export const { createPost, updatePost } = blogSlice.actions
 
 export default blogSlice.reducer 

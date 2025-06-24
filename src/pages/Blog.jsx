@@ -1,175 +1,150 @@
+import Navbar from '../components/Navbar'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import Navbar from '../components/Navbar'
-import { addPost, updatePost, deletePost } from '../store/blogSlice'
+import { createPost, updatePost } from '../store/blogSlice'
 
-const Blog = () => {
-    const dispatch = useDispatch()
-    const posts = useSelector((state) => state.blog.posts)
+export default function Blog() {
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [editingPost, setEditingPost] = useState(null)
-    const [blogForm, setBlogForm] = useState({
+    const [isEditing, setIsEditing] = useState(false)
+    const dispatch = useDispatch()
+    const blogPosts = useSelector(state => state.blog.posts)
+    const [currentBlogPost, setCurrentBlogPost] = useState({
         title: '',
-        content: '',
+        description: '',
         author: ''
     })
 
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen)
         if (!isModalOpen) {
-            setBlogForm({
-                title: '',
-                content: '',
-                author: ''
-            })
-            setEditingPost(null)
+            setIsEditing(false)
+            setCurrentBlogPost({ title: '', description: '', author: '' })
         }
     }
 
-    const handleChange = (e) => {
-        setBlogForm({ ...blogForm, [e.target.name]: e.target.value })
+    const handleInputChange = (e) => {
+        const { name, value } = e.target
+        setCurrentBlogPost(prev => ({
+            ...prev,
+            [name]: value
+        }))
     }
 
-    const handleSubmit = () => {
-        if (editingPost) {
-            dispatch(updatePost({ ...blogForm, id: editingPost.id }))
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        if (isEditing) {
+            dispatch(updatePost(currentBlogPost))
         } else {
-            dispatch(addPost({ ...blogForm, id: Date.now() }))
+            dispatch(createPost(currentBlogPost))
         }
+        setCurrentBlogPost({ title: '', description: '', author: '' })
+        setIsModalOpen(false)
+        setIsEditing(false)
+    }
+
+    const handleEdit = (postItem) => {
+        setCurrentBlogPost(postItem)
+        setIsEditing(true)
         toggleModal()
     }
 
-    const handleEdit = (post) => {
-        setEditingPost(post)
-        setBlogForm({
-            title: post.title,
-            content: post.content,
-            author: post.author
-        })
-        setIsModalOpen(true)
-    }
-
-    const handleDelete = (postId) => {
-        dispatch(deletePost(postId))
-    }
-
     return (
-        <div>
+        <div className="container mx-auto px-4 py-8">
             <Navbar />
-            <div className="container mx-auto p-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold">Blog Posts</h1>
-                    <button
-                        onClick={toggleModal}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    >
-                        Add New Blog
-                    </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white border border-gray-300">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="px-6 py-3 border-b text-left">Title</th>
-                                <th className="px-6 py-3 border-b text-left">Content</th>
-                                <th className="px-6 py-3 border-b text-left">Author</th>
-                                <th className="px-6 py-3 border-b text-left">Actions</th>
+            <div className="flex flex-row justify-between py-4">
+                <h1 className="text-3xl font-bold mb-6">Blog Posts</h1>
+                <button
+                    className="bg-blue-500 text-white px-4 py-1 rounded-md"
+                    onClick={toggleModal}
+                >
+                    Add Post
+                </button>
+            </div>
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-300">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="px-6 py-3 border-b text-left">ID</th>
+                            <th className="px-6 py-3 border-b text-left">Title</th>
+                            <th className="px-6 py-3 border-b text-left">Description</th>
+                            <th className="px-6 py-3 border-b text-left">Author</th>
+                            <th className="px-6 py-3 border-b text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {blogPosts.map((postItem, id) => (
+                            <tr key={id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 border-b">{id + 1}</td>
+                                <td className="px-6 py-4 border-b">{postItem.title}</td>
+                                <td className="px-6 py-4 border-b">{postItem.description}</td>
+                                <td className="px-6 py-4 border-b">{postItem.author}</td>
+                                <td className='px-6 py-4 border-b'>
+                                    <button onClick={() => handleEdit(postItem)} className='bg-blue-500 text-white px-4 py-1 rounded-md mr-2'>Edit</button>
+                                    <button className='bg-red-500 text-white px-4 py-1 rounded-md'>Delete</button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {posts.map((post) => (
-                                <tr key={post.id}>
-                                    <td className="px-6 py-4 border-b">{post.title}</td>
-                                    <td className="px-6 py-4 border-b">{post.content}</td>
-                                    <td className="px-6 py-4 border-b">{post.author}</td>
-                                    <td className="px-6 py-4 border-b">
-                                        <button
-                                            onClick={() => handleEdit(post)}
-                                            className="text-blue-500 hover:text-blue-700 mr-2"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(post.id)}
-                                            className="text-red-500 hover:text-red-700"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
-                {isModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold">{editingPost ? 'Edit Blog' : 'Add New Blog'}</h2>
-                                <button
-                                    onClick={toggleModal}
-                                    className="text-gray-500 hover:text-gray-700"
-                                >
-                                    ✕
-                                </button>
+            {/* Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg w-96">
+                        <h2 className="text-2xl font-bold mb-4">{isEditing ? 'Edit Post' : 'Add New Post'}</h2>
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Title</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={currentBlogPost.title}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
                             </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                    <input
-                                        name="title"
-                                        value={blogForm.title}
-                                        onChange={handleChange}
-                                        type="text"
-                                        placeholder="Enter title"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-                                    <textarea
-                                        name="content"
-                                        value={blogForm.content}
-                                        onChange={handleChange}
-                                        placeholder="Enter content"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        rows="4"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
-                                    <input
-                                        name="author"
-                                        value={blogForm.author}
-                                        onChange={handleChange}
-                                        type="text"
-                                        placeholder="Enter author name"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Description</label>
+                                <textarea
+                                    name="description"
+                                    value={currentBlogPost.description}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
                             </div>
-                            <div className="mt-6 flex justify-end space-x-3">
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-2">Author</label>
+                                <input
+                                    type="text"
+                                    name="author"
+                                    value={currentBlogPost.author}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2">
                                 <button
+                                    type="button"
                                     onClick={toggleModal}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                    className="bg-gray-500 text-white px-4 py-2 rounded"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleSubmit}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                                    type="submit"
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
                                 >
-                                    {editingPost ? 'Update' : 'Save'}
+                                    {isEditing ? 'Update Post' : 'Add Post'}
                                 </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     )
 }
-
-export default Blog
